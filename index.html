@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Function Visualizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .controls {
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            font-weight: 600;
+            color: #495057;
+            min-width: 80px;
+        }
+
+        .function-input {
+            flex: 1;
+            min-width: 300px;
+            padding: 12px 16px;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: 'Courier New', monospace;
+            transition: all 0.3s ease;
+        }
+
+        .function-input:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.2);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .zoom-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .zoom-controls button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .canvas-container {
+            position: relative;
+            padding: 30px;
+            background: white;
+        }
+
+        #graphCanvas {
+            border: 2px solid #dee2e6;
+            border-radius: 15px;
+            cursor: grab;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        #graphCanvas:active {
+            cursor: grabbing;
+        }
+
+        #graphCanvas:hover {
+            border-color: #4facfe;
+        }
+
+        .info-panel {
+            margin-top: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .info-item {
+            text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .info-item strong {
+            color: #4facfe;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .error-message {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            display: none;
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .examples {
+            margin-top: 15px;
+        }
+
+        .examples h3 {
+            color: #495057;
+            margin-bottom: 10px;
+        }
+
+        .example-functions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .example-btn {
+            background: #e9ecef;
+            border: 1px solid #ced4da;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .example-btn:hover {
+            background: #4facfe;
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        @media (max-width: 768px) {
+            .input-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .function-input {
+                min-width: unset;
+            }
+
+            .zoom-controls {
+                justify-content: center;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Math Function Visualizer</h1>
+            <p>Plot mathematical functions with interactive controls</p>
+        </div>
+
+        <div class="controls">
+            <div class="input-group">
+                <label for="functionInput">f(x) =</label>
+                <input type="text" id="functionInput" class="function-input" 
+                       placeholder="Enter function (e.g., x^2, sin(x), x^3 - 2*x + 1)" 
+                       value="x^2">
+                <button class="btn btn-primary" onclick="plotFunction()">Plot Graph</button>
+                <button class="btn btn-secondary" onclick="resetView()">Reset View</button>
+            </div>
+
+            <div class="input-group">
+                <label>Zoom:</label>
+                <div class="zoom-controls">
+                    <button class="btn btn-secondary" onclick="zoom(0.8)">−</button>
+                    <button class="btn btn-secondary" onclick="zoom(1.25)">+</button>
+                    <span id="zoomLevel">100%</span>
+                </div>
+            </div>
+
+            <div class="examples">
+                <h3>Quick Examples:</h3>
+                <div class="example-functions">
+                    <span class="example-btn" onclick="setFunction('x^2')">x²</span>
+                    <span class="example-btn" onclick="setFunction('x^3')">x³</span>
+                    <span class="example-btn" onclick="setFunction('sin(x)')">sin(x)</span>
+                    <span class="example-btn" onclick="setFunction('cos(x)')">cos(x)</span>
+                    <span class="example-btn" onclick="setFunction('tan(x)')">tan(x)</span>
+                    <span class="example-btn" onclick="setFunction('log(x)')">log(x)</span>
+                    <span class="example-btn" onclick="setFunction('exp(x)')">eˣ</span>
+                    <span class="example-btn" onclick="setFunction('abs(x)')">|x|</span>
+                    <span class="example-btn" onclick="setFunction('sqrt(x)')">√x</span>
+                    <span class="example-btn" onclick="setFunction('x^3 - 2*x + 1')">x³-2x+1</span>
+                </div>
+            </div>
+
+            <div class="error-message" id="errorMessage"></div>
+        </div>
+
+        <div class="canvas-container">
+            <canvas id="graphCanvas" width="800" height="600"></canvas>
+            
+            <div class="info-panel">
+                <div class="info-item">
+                    <strong>Current Function</strong>
+                    <span id="currentFunction">x²</span>
+                </div>
+                <div class="info-item">
+                    <strong>Zoom Level</strong>
+                    <span id="currentZoom">100%</span>
+                </div>
+                <div class="info-item">
+                    <strong>X Range</strong>
+                    <span id="xRange">[-10, 10]</span>
+                </div>
+                <div class="info-item">
+                    <strong>Y Range</strong>
+                    <span id="yRange">[-10, 10]</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class GraphPlotter {
+            constructor() {
+                this.canvas = document.getElementById('graphCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.scale = 40; // pixels per unit
+                this.offsetX = 0;
+                this.offsetY = 0;
+                this.isDragging = false;
+                this.lastX = 0;
+                this.lastY = 0;
+                this.currentFunction = 'x^2';
+                
+                this.setupEventListeners();
+                this.plotFunction();
+            }
+
+            setupEventListeners() {
+                // Mouse events for panning
+                this.canvas.addEventListener('mousedown', (e) => {
+                    this.isDragging = true;
+                    this.lastX = e.offsetX;
+                    this.lastY = e.offsetY;
+                });
+
+                this.canvas.addEventListener('mousemove', (e) => {
+                    if (this.isDragging) {
+                        const deltaX = e.offsetX - this.lastX;
+                        const deltaY = e.offsetY - this.lastY;
+                        this.offsetX += deltaX;
+                        this.offsetY += deltaY;
+                        this.lastX = e.offsetX;
+                        this.lastY = e.offsetY;
+                        this.draw();
+                        this.updateInfo();
+                    }
+                });
+
+                this.canvas.addEventListener('mouseup', () => {
+                    this.isDragging = false;
+                });
+
+                this.canvas.addEventListener('mouseleave', () => {
+                    this.isDragging = false;
+                });
+
+                // Wheel event for zooming
+                this.canvas.addEventListener('wheel', (e) => {
+                    e.preventDefault();
+                    const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
+                    this.zoom(zoomFactor);
+                });
+
+                // Enter key to plot
+                document.getElementById('functionInput').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.plotFunction();
+                    }
+                });
+            }
+
+            parseFunction(funcStr) {
+                // Replace common mathematical notation
+                let expr = funcStr.toLowerCase()
+                    .replace(/\^/g, '**')
+                    .replace(/sin/g, 'Math.sin')
+                    .replace(/cos/g, 'Math.cos')
+                    .replace(/tan/g, 'Math.tan')
+                    .replace(/log/g, 'Math.log')
+                    .replace(/ln/g, 'Math.log')
+                    .replace(/exp/g, 'Math.exp')
+                    .replace(/abs/g, 'Math.abs')
+                    .replace(/sqrt/g, 'Math.sqrt')
+                    .replace(/pi/g, 'Math.PI')
+                    .replace(/e(?!\d)/g, 'Math.E');
+
+                // Add multiplication signs where needed
+                expr = expr.replace(/(\d)([a-z])/g, '$1*$2');
+                expr = expr.replace(/([a-z])(\d)/g, '$1*$2');
+                expr = expr.replace(/\)(\d)/g, ')*$1');
+                expr = expr.replace(/(\d)\(/g, '$1*(');
+
+                return expr;
+            }
+
+            evaluateFunction(x, funcStr) {
+                try {
+                    const expr = this.parseFunction(funcStr);
+                    // Create a safe evaluation environment
+                    const func = new Function('x', `return ${expr}`);
+                    const result = func(x);
+                    return isFinite(result) ? result : null;
+                } catch (e) {
+                    return null;
+                }
+            }
+
+            drawGrid() {
+                const { width, height } = this.canvas;
+                const centerX = width / 2 + this.offsetX;
+                const centerY = height / 2 + this.offsetY;
+
+                this.ctx.strokeStyle = '#e0e0e0';
+                this.ctx.lineWidth = 1;
+
+                // Vertical grid lines
+                for (let i = -50; i <= 50; i++) {
+                    const x = centerX + i * this.scale;
+                    if (x >= 0 && x <= width) {
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(x, 0);
+                        this.ctx.lineTo(x, height);
+                        this.ctx.stroke();
+                    }
+                }
+
+                // Horizontal grid lines
+                for (let i = -50; i <= 50; i++) {
+                    const y = centerY + i * this.scale;
+                    if (y >= 0 && y <= height) {
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(0, y);
+                        this.ctx.lineTo(width, y);
+                        this.ctx.stroke();
+                    }
+                }
+            }
+
+            drawAxes() {
+                const { width, height } = this.canvas;
+                const centerX = width / 2 + this.offsetX;
+                const centerY = height / 2 + this.offsetY;
+
+                this.ctx.strokeStyle = '#333';
+                this.ctx.lineWidth = 2;
+
+                // X-axis
+                if (centerY >= 0 && centerY <= height) {
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(0, centerY);
+                    this.ctx.lineTo(width, centerY);
+                    this.ctx.stroke();
+                }
+
+                // Y-axis
+                if (centerX >= 0 && centerX <= width) {
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(centerX, 0);
+                    this.ctx.lineTo(centerX, height);
+                    this.ctx.stroke();
+                }
+
+                // Draw scale markers and labels
+                this.drawScaleMarkers();
+            }
+
+            drawScaleMarkers() {
+                const { width, height } = this.canvas;
+                const centerX = width / 2 + this.offsetX;
+                const centerY = height / 2 + this.offsetY;
+
+                this.ctx.fillStyle = '#666';
+                this.ctx.font = '12px Arial';
+                this.ctx.textAlign = 'center';
+                this.ctx.textBaseline = 'top';
+
+                // X-axis markers
+                if (centerY >= 0 && centerY <= height) {
+                    for (let i = -20; i <= 20; i++) {
+                        if (i === 0) continue;
+                        const x = centerX + i * this.scale;
+                        if (x >= 0 && x <= width) {
+                            this.ctx.beginPath();
+                            this.ctx.moveTo(x, centerY - 5);
+                            this.ctx.lineTo(x, centerY + 5);
+                            this.ctx.stroke();
+                            
+                            if (centerY + 15 <= height) {
+                                this.ctx.fillText(i.toString(), x, centerY + 8);
+                            }
+                        }
+                    }
+                }
+
+                // Y-axis markers
+                this.ctx.textAlign = 'right';
+                this.ctx.textBaseline = 'middle';
+                if (centerX >= 0 && centerX <= width) {
+                    for (let i = -15; i <= 15; i++) {
+                        if (i === 0) continue;
+                        const y = centerY - i * this.scale; // Note: negative because canvas Y increases downward
+                        if (y >= 0 && y <= height) {
+                            this.ctx.beginPath();
+                            this.ctx.moveTo(centerX - 5, y);
+                            this.ctx.lineTo(centerX + 5, y);
+                            this.ctx.stroke();
+                            
+                            if (centerX - 10 >= 0) {
+                                this.ctx.fillText(i.toString(), centerX - 8, y);
+                            }
+                        }
+                    }
+                }
+            }
+
+            drawFunction() {
+                const { width, height } = this.canvas;
+                const centerX = width / 2 + this.offsetX;
+                const centerY = height / 2 + this.offsetY;
+
+                this.ctx.strokeStyle = '#4facfe';
+                this.ctx.lineWidth = 3;
+                this.ctx.beginPath();
+
+                let firstPoint = true;
+                const step = 1; // pixels between points
+
+                for (let pixelX = 0; pixelX <= width; pixelX += step) {
+                    const mathX = (pixelX - centerX) / this.scale;
+                    const mathY = this.evaluateFunction(mathX, this.currentFunction);
+
+                    if (mathY !== null) {
+                        const pixelY = centerY - mathY * this.scale;
+
+                        if (firstPoint) {
+                            this.ctx.moveTo(pixelX, pixelY);
+                            firstPoint = false;
+                        } else {
+                            this.ctx.lineTo(pixelX, pixelY);
+                        }
+                    } else {
+                        firstPoint = true;
+                    }
+                }
+
+                this.ctx.stroke();
+            }
+
+            draw() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                this.drawGrid();
+                this.drawAxes();
+                this.drawFunction();
+            }
+
+            plotFunction() {
+                const input = document.getElementById('functionInput').value.trim();
+                const errorDiv = document.getElementById('errorMessage');
+
+                if (!input) {
+                    this.showError('Please enter a function');
+                    return;
+                }
+
+                // Test the function with a sample value
+                const testResult = this.evaluateFunction(1, input);
+                if (testResult === null) {
+                    this.showError('Invalid function syntax. Please check your input.');
+                    return;
+                }
+
+                this.currentFunction = input;
+                errorDiv.style.display = 'none';
+                this.draw();
+                this.updateInfo();
+            }
+
+            showError(message) {
+                const errorDiv = document.getElementById('errorMessage');
+                errorDiv.textContent = message;
+                errorDiv.style.display = 'block';
+            }
+
+            zoom(factor) {
+                this.scale *= factor;
+                this.draw();
+                this.updateInfo();
+            }
+
+            resetView() {
+                this.scale = 40;
+                this.offsetX = 0;
+                this.offsetY = 0;
+                this.draw();
+                this.updateInfo();
+            }
+
+            updateInfo() {
+                const { width, height } = this.canvas;
+                const centerX = width / 2 + this.offsetX;
+                const centerY = height / 2 + this.offsetY;
+
+                const xMin = -centerX / this.scale;
+                const xMax = (width - centerX) / this.scale;
+                const yMin = -(height - centerY) / this.scale;
+                const yMax = centerY / this.scale;
+
+                document.getElementById('currentFunction').textContent = this.currentFunction;
+                document.getElementById('currentZoom').textContent = Math.round((this.scale / 40) * 100) + '%';
+                document.getElementById('xRange').textContent = `[${xMin.toFixed(1)}, ${xMax.toFixed(1)}]`;
+                document.getElementById('yRange').textContent = `[${yMin.toFixed(1)}, ${yMax.toFixed(1)}]`;
+                document.getElementById('zoomLevel').textContent = Math.round((this.scale / 40) * 100) + '%';
+            }
+        }
+
+        // Global functions for button handlers
+        let plotter;
+
+        function plotFunction() {
+            plotter.plotFunction();
+        }
+
+        function zoom(factor) {
+            plotter.zoom(factor);
+        }
+
+        function resetView() {
+            plotter.resetView();
+        }
+
+        function setFunction(func) {
+            document.getElementById('functionInput').value = func;
+            plotter.plotFunction();
+        }
+
+        // Initialize the plotter when the page loads
+        window.addEventListener('load', () => {
+            plotter = new GraphPlotter();
+        });
+    </script>
+</body>
+</html>
